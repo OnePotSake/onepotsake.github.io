@@ -1,23 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title>MySQL 索引原理与其他相应问题</title>
-    <url>/2020/05/18/MySQL-%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
-    <content><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p>
-<h2 id="1-索引的目的"><a href="#1-索引的目的" class="headerlink" title="1.索引的目的?"></a>1.索引的目的?</h2><h2 id="2-在数据结构中哪些可以做索引"><a href="#2-在数据结构中哪些可以做索引" class="headerlink" title="2.在数据结构中哪些可以做索引?"></a>2.在数据结构中哪些可以做索引?</h2><h2 id="3-MySQL索引中为什么推荐采用Btree做索引-MySQL对其是否有相应的优化"><a href="#3-MySQL索引中为什么推荐采用Btree做索引-MySQL对其是否有相应的优化" class="headerlink" title="3.MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?"></a>3.MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?</h2><h2 id="4-一般DB建议问我们创建表时都要加主键-且这个主键推荐整形的自增长主键原理是怎么样的"><a href="#4-一般DB建议问我们创建表时都要加主键-且这个主键推荐整形的自增长主键原理是怎么样的" class="headerlink" title="4.一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?"></a>4.一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?</h2><p>首先,我们使用索引的目的就是为了加快我们在查找表数据时的效率与速度,不然我们就要遍历表所有的内容从而查找对应的数据信息返还内容.小范围的数据查询即便不加索引也可以实现 </p>
-<h6 id=""><a href="#" class="headerlink" title=""></a></h6>]]></content>
+<search> 
+  
+  
+    
+    <entry>
+      <title>MySQL 索引原理与其他相应问题</title>
+      <link href="/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/"/>
+      <url>/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
+      
+        <content type="html"><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p><ul><li><p>索引的目的?</p></li><li><p>在数据结构中哪些可以做索引?</p></li><li><p>MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?</p></li><li><p>一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?</p></li></ul><p>首先,我们使用索引的目的就是为了加快我们在查找表数据时的效率与速度,不然我们就要遍历表所有的内容从而查找对应的数据信息返还内容.小范围的数据查询即便不加索引也可以实现 </p><h6 id=""><a href="#" class="headerlink" title=""></a></h6>]]></content>
+      
+      
       <categories>
-        <category>MySQL</category>
-        <category>索引</category>
+          
+          <category> MySQL </category>
+          
+          <category> 索引 </category>
+          
       </categories>
-      <tags>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>博客</title>
-    <url>/2020/03/20/hello-world/</url>
-    <content><![CDATA[<p>欢迎访问我的博客!</p>
-]]></content>
-  </entry>
+      
+      
+        <tags>
+            
+            <tag> MySQL </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>博客</title>
+      <link href="/2020/03/20/hello-world/"/>
+      <url>/2020/03/20/hello-world/</url>
+      
+        <content type="html"><![CDATA[<p>欢迎访问我的博客!</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+  
+  
 </search>
