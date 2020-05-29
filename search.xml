@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>MySQL 索引原理</title>
-    <url>/blog/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
+    <url>/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p>
 <ul>
 <li><p><strong>索引</strong>的<strong>目的</strong>?</p>
