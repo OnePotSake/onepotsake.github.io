@@ -20,19 +20,23 @@
     var CONFIG = {"hostname":"onepotsake.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="欢迎访问我的博客!">
+  <meta name="description" content="MySQL索引原理MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?  索引的目的?  在数据结构中哪些可以做索引?  MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?  一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?">
 <meta property="og:type" content="article">
-<meta property="og:title" content="博客">
-<meta property="og:url" content="https://onepotsake.github.io/2020/03/20/hello-world/index.html">
+<meta property="og:title" content="MySQL 索引原理">
+<meta property="og:url" content="https://onepotsake.github.io/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="OnePotSake Blog">
-<meta property="og:description" content="欢迎访问我的博客!">
+<meta property="og:description" content="MySQL索引原理MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?  索引的目的?  在数据结构中哪些可以做索引?  MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?  一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-03-20T12:49:19.000Z">
-<meta property="article:modified_time" content="2020-05-29T11:47:36.891Z">
+<meta property="og:image" content="https://onepotsake.github.io/image/DB/MySQL/IndexMarker(01).jpg">
+<meta property="og:image" content="https://onepotsake.github.io/image/DB/MySQL/IndexMarker(02).jpg">
+<meta property="article:published_time" content="2020-05-18T12:49:19.000Z">
+<meta property="article:modified_time" content="2020-06-05T16:05:17.529Z">
 <meta property="article:author" content="OnePotSake">
+<meta property="article:tag" content="MySQL">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://onepotsake.github.io/image/DB/MySQL/IndexMarker(01).jpg">
 
-<link rel="canonical" href="https://onepotsake.github.io/2020/03/20/hello-world/">
+<link rel="canonical" href="https://onepotsake.github.io/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/">
 
 
 <script id="page-configurations">
@@ -45,7 +49,7 @@
   };
 </script>
 
-  <title>博客 | OnePotSake Blog</title><meta name="robots" content="noindex">
+  <title>MySQL 索引原理 | OnePotSake Blog</title>
   
 
 
@@ -193,7 +197,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://onepotsake.github.io/2020/03/20/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://onepotsake.github.io/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -206,7 +210,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          博客
+          MySQL 索引原理
         </h1>
 
         <div class="post-meta">
@@ -216,15 +220,28 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-20 20:49:19" itemprop="dateCreated datePublished" datetime="2020-03-20T20:49:19+08:00">2020-03-20</time>
+              <time title="创建时间：2020-05-18 20:49:19" itemprop="dateCreated datePublished" datetime="2020-05-18T20:49:19+08:00">2020-05-18</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-05-29 19:47:36" itemprop="dateModified" datetime="2020-05-29T19:47:36+08:00">2020-05-29</time>
+                <time title="修改时间：2020-06-06 00:05:17" itemprop="dateModified" datetime="2020-06-06T00:05:17+08:00">2020-06-06</time>
               </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/%E7%B4%A2%E5%BC%95/" itemprop="url" rel="index"><span itemprop="name">索引</span></a>
+                </span>
+            </span>
 
           <br>
             <span class="post-meta-item" title="本文字数">
@@ -232,14 +249,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>9</span>
+              <span>1.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -251,8 +268,65 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>欢迎访问我的博客!</p>
-<!-- flag of hidden posts -->
+        <h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p>
+<ul>
+<li><p><strong>索引</strong>的<strong>目的</strong>?</p>
+</li>
+<li><p>在<strong>数据结构</strong>中哪些可以<strong>做索引</strong>?</p>
+</li>
+<li><p>MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?</p>
+</li>
+<li><p>一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p>首先,我们使用索引的目的就是为了加快我们在查找表数据时的效率与速度,不然我们就要遍历表所有的内容从而查找对应的数据信息返还内容.小范围的数据查询即便不加索引也可以实现.但当今的大数据环境之下已经数据已经膨胀式增长大量数据膨胀化,所以如果不采用索引如何能实现<strong>快读定位</strong>呢那就是采用索引.</p>
+<p>提到索引就不得不提,存储索引能的数据结构与查找数据的算法,MySQL数据库支持多种索引类型，如BTree索引，哈希索引，全文索引等等.</p>
+<p>常见的查找算法与数据结构</p>
+<ul>
+<li><p>顺序查找</p>
+</li>
+<li><p>二分查找</p>
+</li>
+<li><p>二叉树查找</p>
+</li>
+<li><p><strong>哈希散列法</strong>(哈希表) </p>
+</li>
+<li><p>分块查找</p>
+</li>
+<li><p>平衡多路搜索树B树（B-tree）</p>
+</li>
+<li><p><strong>BTree</strong> </p>
+</li>
+<li><p>带有顺序访问指针的B+Tree</p>
+<p>这里选几个有代表性的算法举例(顺序/二分/hash/b树)进行解析</p>
+</li>
+</ul>
+<p>顺序查找,跟上文说过的问题是一样的,在大量数据下如何能快速定位即便是数据按照序列排,也不能实现快速定位,显然不可取,其复杂度取决于O(N),N为数据量.</p>
+<p>二分查找,效率效率相对高些,但比较依赖数据的顺序排列,在有顺序的情况下,根据数据的对比找寻对应的数据范围,根据范围空间再次遍历查找,虽说高效点,但相应的 速度也至少有O(N/2)的复杂度</p>
+<p>hash可以很高效的定位,因为hash数据存储在内存中,根据hash值可以实现快速高效的定位,可以达到O(1),但如若是范围数据,无法实现查找功能.</p>
+<p>b树,可以实现右结点都比左边大,但可能出现一边倒情况,而且上线不明确.时间复杂度在极端情况下与顺序查找没有区别.</p>
+<p>有没有可以实现代替的方法?采用b+树,b树不适用主要因为无法定位层级高度与数据的极端情况无法调整.故而采用b+.更为准确的说是采用带有顺序访问指针的B+Tree.</p>
+<p>更为详细的内存容后续补充,这里只说MySQL对b+树优化的点在哪里</p>
+<img src="/image/DB/MySQL/IndexMarker(01).jpg" style="margin: auto;" />
+
+<center>图-01</center>
+<img src="/image/DB/MySQL/IndexMarker(02).jpg" style="margin: auto;" />
+
+
+
+<center>图-02</center>
+根据图01与 图02可以看出 ,图02相较01多了顺序指针访问,采用b+树的好处主要可以**限定层级**关系,一般MySQL层级在1-4层最好.不要小看这几个层级,也能实现上千万条数据的索引建立.一般推荐是在1-3层最好.**支持大量索引信息**为了更好理解这里说个实际的例子.
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">主键id，我们采用bigint，8字节,一条数据大小1KB</span><br><span class="line">- 第一层</span><br><span class="line">   一个页16K，每一个索引键的大小8字节（bigint）+6字节（空白块中 指针大小），因此第一层可存储16*1024&#x2F;14&#x3D;1170个索引键。</span><br><span class="line">- 第二层</span><br><span class="line">   第二层只存储索引键，能存储多少个索引键呢？1170（这么多个页，有第一层延伸的指针）*1170(每页的索引键个数，跟第一步计算一致)&#x3D;1368900</span><br><span class="line">   如果第二层存储数据呢？1170（这么多个页，有第一层延伸的指针）*16(16KB的页大小&#x2F;1KB的数据大小)&#x3D;18720，也就是能存储一万多条数。</span><br><span class="line">- 第三层</span><br><span class="line">   直接看三层能存储多少数据？1170*1170*16&#x3D;21902400，是不是很强大，此处应该有掌声和鲜花，3次IO就可以查询到2千多万左右的数据，也就是这么大的数据量如果通过主键索引来查找是很快，这就是explain一个sql时，type&#x3D;const为什么性能是最优的。</span><br></pre></td></tr></table></figure>
+
+<p>至此,上述问题,已经回答3个,剩下一般<strong>DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的</strong> ,MySQL从5.5版本开始数据引擎均采用(InnDB),而这个引擎默认就采用我们讨论的b+树存储.如何根据以上内容如何快速的插入一条数据呢?显然根据b树特点,我们在第一批插入数据时结点一定是比上一个结点大的,后续内容若在不改变原有数据情况下,默认插入数据的结点都会比原来的大,这样通过找寻上一个的结点,在相应正确的位置插入即可.根据优化的关系很容易定位到具体值所在的位置,从而快实现速定位,也实现了对应数据的顺序关联.</p>
+<p>补充额外的内容.</p>
+<p>MySQL数据引擎主要有InnoDB与 方式也有MyISAM两种方式,两种方式分别对聚集索引与非聚集索引.</p>
+<p>所谓的聚集索引是指像索引内容与数据等信息存储到一个文件中,而非聚集索引是分开存储的.</p>
+<p>MyISAM的存储文件有三个，frm、MYD、MYI 文件；InnoDB的存储文件就两个，frm、ibd文件。</p>
+
     </div>
 
     
@@ -267,7 +341,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://onepotsake.github.io/2020/03/20/hello-world/" title="博客">https://onepotsake.github.io/2020/03/20/hello-world/</a>
+    <a href="https://onepotsake.github.io/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/" title="MySQL 索引原理">https://onepotsake.github.io/2020/05/18/db/MySQL/索引/MySQL索引原理/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -286,11 +360,21 @@
   
 </div>
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySQL/" rel="tag"> MySQL</a>
+          </div>
 
         
 
 
         
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/19/skill/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E7%94%9F%E6%88%90%E5%AE%9E%E4%BD%93%E4%B8%8Emapper%E6%96%87%E4%BB%B6/" rel="next" title="逆向工程生成实体与mapper文件">
+      逆向工程生成实体与mapper文件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
       </footer>
     
   </article>
@@ -348,6 +432,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL索引原理"><span class="nav-number">1.</span> <span class="nav-text">MySQL索引原理</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

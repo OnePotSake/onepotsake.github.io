@@ -1,34 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search> 
-  
-  
-    
-    <entry>
-      <title>MySQL 索引原理</title>
-      <link href="/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/"/>
-      <url>/2020/05/18/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
-      
-        <content type="html"><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p><ul><li><p><strong>索引</strong>的<strong>目的</strong>?</p></li><li><p>在<strong>数据结构</strong>中哪些可以<strong>做索引</strong>?</p></li><li><p>MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?</p></li><li><p>一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?</p><a id="more"></a></li></ul><p>首先,我们使用索引的目的就是为了加快我们在查找表数据时的效率与速度,不然我们就要遍历表所有的内容从而查找对应的数据信息返还内容.小范围的数据查询即便不加索引也可以实现.但当今的大数据环境之下已经数据已经膨胀式增长大量数据膨胀化,所以如果不采用索引如何能实现<strong>快读定位</strong>呢那就是采用索引.</p><p>提到索引就不得不提,存储索引能的数据结构与查找数据的算法,MySQL数据库支持多种索引类型，如BTree索引，哈希索引，全文索引等等.</p><p>常见的查找算法与数据结构</p><ul><li><p>顺序查找</p></li><li><p>二分查找</p></li><li><p>二叉树查找</p></li><li><p><strong>哈希散列法</strong>(哈希表) </p></li><li><p>分块查找</p></li><li><p>平衡多路搜索树B树（B-tree）</p></li><li><p><strong>BTree</strong> </p></li><li><p>带有顺序访问指针的B+Tree</p><p>这里选几个有代表性的算法举例(顺序/二分/hash/b树)进行解析</p></li></ul><p>顺序查找,跟上文说过的问题是一样的,在大量数据下如何能快速定位即便是数据按照序列排,也不能实现快速定位,显然不可取,其复杂度取决于O(N),N为数据量.</p><p>二分查找,效率效率相对高些,但比较依赖数据的顺序排列,在有顺序的情况下,根据数据的对比找寻对应的数据范围,根据范围空间再次遍历查找,虽说高效点,但相应的 速度也至少有O(N/2)的复杂度</p><p>hash可以很高效的定位,因为hash数据存储在内存中,根据hash值可以实现快速高效的定位,可以达到O(1),但如若是范围数据,无法实现查找功能.</p><p>b树,可以实现右结点都比左边大,但可能出现一边倒情况,而且上线不明确.时间复杂度在极端情况下与顺序查找没有区别.</p><p>有没有可以实现代替的方法?采用b+树,b树不适用主要因为无法定位层级高度与数据的极端情况无法调整.故而采用b+.更为准确的说是采用带有顺序访问指针的B+Tree.</p><p>更为详细的内存容后续补充,这里只说MySQL对b+树优化的点在哪里</p><img src="/image/MySQL-2020-05-18IndexMarker(01).jpg" style="margin: auto;" /><center>图-01</center><img src="/image/MySQL-2020-05-18IndexMarker(02).jpg" style="margin: auto;" /><center>图-02</center>根据图01与 图02可以看出 ,图02相较01多了顺序指针访问,采用b+树的好处主要可以**限定层级**关系,一般MySQL层级在1-4层最好.不要小看这几个层级,也能实现上千万条数据的索引建立.一般推荐是在1-3层最好.**支持大量索引信息**为了更好理解这里说个实际的例子.<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">主键id，我们采用bigint，8字节,一条数据大小1KB</span><br><span class="line">- 第一层</span><br><span class="line">   一个页16K，每一个索引键的大小8字节（bigint）+6字节（空白块中 指针大小），因此第一层可存储16*1024&#x2F;14&#x3D;1170个索引键。</span><br><span class="line">- 第二层</span><br><span class="line">   第二层只存储索引键，能存储多少个索引键呢？1170（这么多个页，有第一层延伸的指针）*1170(每页的索引键个数，跟第一步计算一致)&#x3D;1368900</span><br><span class="line">   如果第二层存储数据呢？1170（这么多个页，有第一层延伸的指针）*16(16KB的页大小&#x2F;1KB的数据大小)&#x3D;18720，也就是能存储一万多条数。</span><br><span class="line">- 第三层</span><br><span class="line">   直接看三层能存储多少数据？1170*1170*16&#x3D;21902400，是不是很强大，此处应该有掌声和鲜花，3次IO就可以查询到2千多万左右的数据，也就是这么大的数据量如果通过主键索引来查找是很快，这就是explain一个sql时，type&#x3D;const为什么性能是最优的。</span><br></pre></td></tr></table></figure><p>至此,上述问题,已经回答3个,剩下一般<strong>DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的</strong> ,MySQL从5.5版本开始数据引擎均采用(InnDB),而这个引擎默认就采用我们讨论的b+树存储.如何根据以上内容如何快速的插入一条数据呢?显然根据b树特点,我们在第一批插入数据时结点一定是比上一个结点大的,后续内容若在不改变原有数据情况下,默认插入数据的结点都会比原来的大,这样通过找寻上一个的结点,在相应正确的位置插入即可.根据优化的关系很容易定位到具体值所在的位置,从而快实现速定位,也实现了对应数据的顺序关联.</p><p>补充额外的内容.</p><p>MySQL数据引擎主要有InnoDB与 方式也有MyISAM两种方式,两种方式分别对聚集索引与非聚集索引.</p><p>所谓的聚集索引是指像索引内容与数据等信息存储到一个文件中,而非聚集索引是分开存储的.</p><p>MyISAM的存储文件有三个，frm、MYD、MYI 文件；InnoDB的存储文件就两个，frm、ibd文件。</p><p>至此以上问题已经全部讲解完毕,欢迎补充,互相学习.</p>]]></content>
-      
-      
+<search>
+  <entry>
+    <title>逆向工程生成实体与mapper文件</title>
+    <url>/2020/05/19/skill/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E7%94%9F%E6%88%90%E5%AE%9E%E4%BD%93%E4%B8%8Emapper%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<h1 id="逆向工程生成实体与mapper文件"><a href="#逆向工程生成实体与mapper文件" class="headerlink" title="逆向工程生成实体与mapper文件"></a>逆向工程生成实体与mapper文件</h1><p>繁杂的对象属性如何通过逆向工程建立?</p>
+<a id="more"></a>
+
+<p>前提条件,表创建完成</p>
+<p>采用maven方式,引入相应的jar包,版本自行更改</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;project xmlns&#x3D;&quot;http:&#x2F;&#x2F;maven.apache.org&#x2F;POM&#x2F;4.0.0&quot;</span><br><span class="line">         xmlns:xsi&#x3D;&quot;http:&#x2F;&#x2F;www.w3.org&#x2F;2001&#x2F;XMLSchema-instance&quot;</span><br><span class="line">         xsi:schemaLocation&#x3D;&quot;http:&#x2F;&#x2F;maven.apache.org&#x2F;POM&#x2F;4.0.0 http:&#x2F;&#x2F;maven.apache.org&#x2F;xsd&#x2F;maven-4.0.0.xsd&quot;&gt;</span><br><span class="line">  &lt;parent&gt;</span><br><span class="line">    &lt;artifactId&gt;parent&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;groupId&gt;修改&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;version&gt;1.0-SNAPSHOT&lt;&#x2F;version&gt;</span><br><span class="line">  &lt;&#x2F;parent&gt;</span><br><span class="line">  &lt;modelVersion&gt;4.0.0&lt;&#x2F;modelVersion&gt;</span><br><span class="line">  &lt;packaging&gt;jar&lt;&#x2F;packaging&gt;</span><br><span class="line"></span><br><span class="line">  &lt;properties&gt;</span><br><span class="line">    &lt;org.mybatis.mybatis&gt;3.5.4&lt;&#x2F;org.mybatis.mybatis&gt;</span><br><span class="line">    &lt;mybatis.generator-plugin&gt;1.4.0&lt;&#x2F;mybatis.generator-plugin&gt;</span><br><span class="line">    &lt;mybatis-generator-core&gt;1.4.0&lt;&#x2F;mybatis-generator-core&gt;</span><br><span class="line">    &lt;com.alibaba.druid&gt;1.1.22&lt;&#x2F;com.alibaba.druid&gt;</span><br><span class="line">    &lt;mysql&gt;8.0.18&lt;&#x2F;mysql&gt;</span><br><span class="line">  &lt;&#x2F;properties&gt;</span><br><span class="line"></span><br><span class="line">  &lt;dependencies&gt;</span><br><span class="line">   &lt;dependency&gt;</span><br><span class="line">      &lt;groupId&gt;org.mybatis&lt;&#x2F;groupId&gt;</span><br><span class="line">      &lt;artifactId&gt;mybatis&lt;&#x2F;artifactId&gt;</span><br><span class="line">      &lt;version&gt;$&#123;org.mybatis.mybatis&#125;&lt;&#x2F;version&gt;</span><br><span class="line">    &lt;&#x2F;dependency&gt;</span><br><span class="line">  &lt;&#x2F;dependencies&gt;</span><br><span class="line">  &lt;artifactId&gt;entity&lt;&#x2F;artifactId&gt;</span><br><span class="line"></span><br><span class="line">  &lt;build&gt;</span><br><span class="line">    &lt;plugins&gt;</span><br><span class="line">      &lt;plugin&gt;</span><br><span class="line">        &lt;groupId&gt;org.mybatis.generator&lt;&#x2F;groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;mybatis-generator-maven-plugin&lt;&#x2F;artifactId&gt;</span><br><span class="line">        &lt;version&gt;$&#123;mybatis.generator-plugin&#125;&lt;&#x2F;version&gt;</span><br><span class="line">      </span><br><span class="line">        &lt;dependencies&gt;</span><br><span class="line">          &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.mybatis.generator&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;mybatis-generator-core&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;mybatis-generator-core&#125;&lt;&#x2F;version&gt;</span><br><span class="line">          &lt;&#x2F;dependency&gt;</span><br><span class="line"></span><br><span class="line">          &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;com.alibaba&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;druid&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;com.alibaba.druid&#125;&lt;&#x2F;version&gt;</span><br><span class="line">          &lt;&#x2F;dependency&gt;</span><br><span class="line">          </span><br><span class="line">          &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;mysql&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;mysql-connector-java&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;mysql&#125;&lt;&#x2F;version&gt;</span><br><span class="line">          &lt;&#x2F;dependency&gt;</span><br><span class="line">        &lt;&#x2F;dependencies&gt;</span><br><span class="line">      &lt;&#x2F;plugin&gt;</span><br><span class="line">    &lt;&#x2F;plugins&gt;</span><br><span class="line">  &lt;&#x2F;build&gt;</span><br><span class="line">&lt;&#x2F;project&gt;</span><br></pre></td></tr></table></figure>
+
+<p>写入相应的generatorConfig.xml文件,放入resources目录 </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!DOCTYPE generatorConfiguration</span><br><span class="line">    PUBLIC &quot;-&#x2F;&#x2F;mybatis.org&#x2F;&#x2F;DTD MyBatis Generator Configuration 1.0&#x2F;&#x2F;EN&quot;</span><br><span class="line">    &quot;http:&#x2F;&#x2F;mybatis.org&#x2F;dtd&#x2F;mybatis-generator-config_1_0.dtd&quot;&gt;</span><br><span class="line">&lt;generatorConfiguration&gt;</span><br><span class="line">  &lt;!-- mybatis-generator:generate --&gt;</span><br><span class="line">  &lt;context id&#x3D;&quot;atguiguTables&quot; targetRuntime&#x3D;&quot;MyBatis3&quot;&gt;</span><br><span class="line">    &lt;commentGenerator&gt;</span><br><span class="line">      &lt;!-- 是否去除自动生成的注释 true:是;false:否 --&gt;</span><br><span class="line">      &lt;property name&#x3D;&quot;suppressAllComments&quot; value&#x3D;&quot;true&quot; &#x2F;&gt;</span><br><span class="line">    &lt;&#x2F;commentGenerator&gt;</span><br><span class="line">    &lt;!--数据库连接的信息： 驱动类、 连接地址、 用户名、 密码 --&gt;</span><br><span class="line">    &lt;jdbcConnection</span><br><span class="line">        driverClass&#x3D;&quot;com.mysql.cj.jdbc.Driver&quot;</span><br><span class="line">        connectionURL&#x3D;&quot;jdbc:mysql:&#x2F;&#x2F;localhost:3306&#x2F;project_crowd?serverTimezone&#x3D;UTC&quot;</span><br><span class="line">        userId&#x3D;&quot;root&quot;</span><br><span class="line">        password&#x3D;&quot;123456&quot;&gt;</span><br><span class="line">    &lt;&#x2F;jdbcConnection&gt;</span><br><span class="line">    &lt;!-- 默认 false， 把 JDBC DECIMAL 和 NUMERIC 类型解析为 Integer， 为 true 时把</span><br><span class="line">    JDBC DECIMAL</span><br><span class="line">    和 NUMERIC 类型解析为 java.math.BigDecimal --&gt;</span><br><span class="line">    &lt;javaTypeResolver&gt;</span><br><span class="line">      &lt;property name&#x3D;&quot;forceBigDecimals&quot; value&#x3D;&quot;false&quot; &#x2F;&gt;</span><br><span class="line">    &lt;&#x2F;javaTypeResolver&gt;</span><br><span class="line">    &lt;!-- targetProject:生成 Entity 类的路径 --&gt;</span><br><span class="line">    &lt;javaModelGenerator targetProject&#x3D;&quot;.\src\main\java&quot; targetPackage&#x3D;&quot;com.xxxx.entity&quot;&gt;</span><br><span class="line">    &lt;!-- enableSubPackages:是否让 schema 作为包的后缀 --&gt;</span><br><span class="line">&lt;property name&#x3D;&quot;enableSubPackages&quot; value&#x3D;&quot;true&quot; &#x2F;&gt;</span><br><span class="line">    &lt;!-- 从数据库返回的值被清理前后的空格 --&gt;</span><br><span class="line">&lt;property name&#x3D;&quot;trimStrings&quot; value&#x3D;&quot;true&quot; &#x2F;&gt;</span><br><span class="line">    &lt;&#x2F;javaModelGenerator&gt;</span><br><span class="line">    &lt;!-- targetProject:XxxMapper.xml 映射文件生成的路径 --&gt;</span><br><span class="line">&lt;sqlMapGenerator targetProject&#x3D;&quot;.\src\main\java&quot; targetPackage&#x3D;&quot;com.xxxx.mapper&quot;&gt;</span><br><span class="line">&lt;!-- enableSubPackages:是否让 schema 作为包的后缀 --&gt;</span><br><span class="line">&lt;property name&#x3D;&quot;enableSubPackages&quot; value&#x3D;&quot;true&quot; &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;sqlMapGenerator&gt;</span><br><span class="line">    &lt;!-- targetPackage： Mapper 接口生成的位置 --&gt;</span><br><span class="line">&lt;javaClientGenerator type&#x3D;&quot;XMLMAPPER&quot; targetProject&#x3D;&quot;.\src\main\java&quot;      targetPackage&#x3D;&quot;com.xxxx.mapper&quot;&gt;</span><br><span class="line">&lt;!-- enableSubPackages:是否让 schema 作为包的后缀 --&gt;</span><br><span class="line">&lt;property name&#x3D;&quot;enableSubPackages&quot; value&#x3D;&quot;true&quot; &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;javaClientGenerator&gt;</span><br><span class="line">    &lt;!-- 数据库表名字和我们的 entity 类对应的映射指定 --&gt;</span><br><span class="line">&lt;table tableName&#x3D;&quot;t_admin&quot; domainObjectName&#x3D;&quot;Admin&quot; &#x2F;&gt;</span><br><span class="line">    &lt;&#x2F;context&gt;</span><br><span class="line">    &lt;&#x2F;generatorConfiguration&gt;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-          
-          <category> MySQL </category>
-          
-          <category> 索引 </category>
-          
+        <category>技巧</category>
+        <category>代码技巧</category>
+        <category>快速实体</category>
+        <category>快速Mapper文件</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> MySQL </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-  
-  
+      <tags>
+        <tag>技巧</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM 结构</title>
+    <url>/2020/05/30/JVM/JVM%E7%BB%93%E6%9E%84/JVM%20%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h1 id="常见垃圾回收器与其特点"><a href="#常见垃圾回收器与其特点" class="headerlink" title="常见垃圾回收器与其特点"></a>常见垃圾回收器与其特点</h1><h1 id="JVM结构"><a href="#JVM结构" class="headerlink" title="JVM结构"></a>JVM结构</h1><a id="more"></a>
+
+
+
+<img src="/image/MySQL-2020-05-18IndexMarker(01).jpg" style="margin: auto;" />
+
+<center>图-01</center>
+<img src="/image/MySQL-2020-05-18IndexMarker(02).jpg" style="margin: auto;" />
+
+
+
+<center>图-02</center>
+]]></content>
+      <categories>
+        <category>JVM</category>
+        <category>结构</category>
+      </categories>
+      <tags>
+        <tag>JVM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM 调优</title>
+    <url>/2020/05/29/JVM/JVM%E8%B0%83%E4%BC%98/JVM%20%E8%B0%83%E4%BC%98/</url>
+    <content><![CDATA[<h1 id="常见垃圾回收器与其特点"><a href="#常见垃圾回收器与其特点" class="headerlink" title="常见垃圾回收器与其特点"></a>常见垃圾回收器与其特点</h1><h1 id="JVM-调优"><a href="#JVM-调优" class="headerlink" title="JVM 调优"></a>JVM 调优</h1><a id="more"></a>
+
+
+
+<img src="/image/MySQL-2020-05-18IndexMarker(01).jpg" style="margin: auto;" />
+
+<center>图-01</center>
+<img src="/image/MySQL-2020-05-18IndexMarker(02).jpg" style="margin: auto;" />
+
+
+
+<center>图-02</center>
+]]></content>
+      <categories>
+        <category>JVM</category>
+        <category>调优</category>
+      </categories>
+      <tags>
+        <tag>JVM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>常见垃圾回收器与其特点</title>
+    <url>/2020/05/30/JVM/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/%E5%B8%B8%E8%A7%81%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E4%B8%8E%E5%85%B6%E7%89%B9%E7%82%B9/</url>
+    <content><![CDATA[<h1 id="常见垃圾回收器与其特点"><a href="#常见垃圾回收器与其特点" class="headerlink" title="常见垃圾回收器与其特点"></a>常见垃圾回收器与其特点</h1><a id="more"></a>
+
+
+
+<img src="/image/MySQL-2020-05-18IndexMarker(01).jpg" style="margin: auto;" />
+
+<center>图-01</center>
+<img src="/image/MySQL-2020-05-18IndexMarker(02).jpg" style="margin: auto;" />
+
+
+
+<center>图-02</center>
+
+]]></content>
+      <categories>
+        <category>JVM</category>
+        <category>垃圾回收器</category>
+      </categories>
+      <tags>
+        <tag>JVM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ArrayList 底层原理</title>
+    <url>/2020/05/21/JAVA/Collection/List/ArrayList%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h1 id="ArrayList-底层原理"><a href="#ArrayList-底层原理" class="headerlink" title="ArrayList 底层原理"></a>ArrayList 底层原理</h1><p>List作为有序集合的典型代表经常使用,但底层原理一直是看别人的总结,有道是实践出真知…</p>
+<p>层级结构,数据结构</p>
+<p>扩容机制,自身特点</p>
+<a id="more"></a>
+
+<p>通过idea 工具可以看出其层次机构</p>
+<img src="/image/JAVA/Collection/List/ArrayList/Underlying principles.png" style="margin: auto;" />
+
+
+
+<center>层次结构图</center> 
+
+
+
+<p>层次结构解析</p>
+<p><strong>Iterable</strong>:泛型迭代器接口,一共3个方法,无参数构造/foreach循环/<strong>spliterator</strong>(分割并行处理,效果比迭代器快)</p>
+<p><strong>Collection</strong>:集合常用接口.集成集合常用方法;</p>
+<p><strong>AbstractCollectior</strong>:具体实现<strong>collection</strong>接口,重点<strong>finishToArray</strong>方法,<strong>hugeCapacity</strong>方法.</p>
+<p>   <strong>hugeCapacity</strong>用于将元素复制到新的集合中.</p>
+<p>   <strong>hugeCapacity</strong>扩容代码,扩容为原有空间大小的1.5倍.</p>
+<p><strong>List</strong>: 继承原有Collection方法,同时扩展部分自己的具体实现操作(default 方法)</p>
+<p><strong>AbstractList</strong>: ArrayList 主要继承的类.其具体实现接口.</p>
+<p><strong>Randomaccess</strong>接口,实现它的接口,底层采用</p>
+<p><strong>Serializable</strong>:实例化接口,实例化接口中没有具体的方法实现.</p>
+<p><strong>Cloneable</strong>:拷贝接口</p>
+<p>存储数据结构</p>
+<p>底层采用Object[]数组存储,数组作为一个集合,我们知道数组在分配内存时是一块完整的区域,数据之间有顺序关系的.缺省值大小是10.</p>
+<p>查找方法</p>
+<p>修改</p>
+<p>删除</p>
+<img src="/image/JAVA/Collection/List/ArrayList/Expansion.png" style="margin: auto;" />
+
+<center>扩容机制代码</center>
+
+<img src="/image/JAVA/Collection/List/ArrayList/default.png" style="margin: auto;" />
+
+<center>属性</center>]]></content>
+      <categories>
+        <category>JAVA</category>
+        <category>集合</category>
+        <category>list</category>
+        <category>ArrayList</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+        <tag>集合</tag>
+        <tag>List</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL 索引原理</title>
+    <url>/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p>
+<ul>
+<li><p><strong>索引</strong>的<strong>目的</strong>?</p>
+</li>
+<li><p>在<strong>数据结构</strong>中哪些可以<strong>做索引</strong>?</p>
+</li>
+<li><p>MySQL索引中为什么推荐采用Btree做索引,MySQL对其是否有相应的优化?</p>
+</li>
+<li><p>一般DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的?</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p>首先,我们使用索引的目的就是为了加快我们在查找表数据时的效率与速度,不然我们就要遍历表所有的内容从而查找对应的数据信息返还内容.小范围的数据查询即便不加索引也可以实现.但当今的大数据环境之下已经数据已经膨胀式增长大量数据膨胀化,所以如果不采用索引如何能实现<strong>快读定位</strong>呢那就是采用索引.</p>
+<p>提到索引就不得不提,存储索引能的数据结构与查找数据的算法,MySQL数据库支持多种索引类型，如BTree索引，哈希索引，全文索引等等.</p>
+<p>常见的查找算法与数据结构</p>
+<ul>
+<li><p>顺序查找</p>
+</li>
+<li><p>二分查找</p>
+</li>
+<li><p>二叉树查找</p>
+</li>
+<li><p><strong>哈希散列法</strong>(哈希表) </p>
+</li>
+<li><p>分块查找</p>
+</li>
+<li><p>平衡多路搜索树B树（B-tree）</p>
+</li>
+<li><p><strong>BTree</strong> </p>
+</li>
+<li><p>带有顺序访问指针的B+Tree</p>
+<p>这里选几个有代表性的算法举例(顺序/二分/hash/b树)进行解析</p>
+</li>
+</ul>
+<p>顺序查找,跟上文说过的问题是一样的,在大量数据下如何能快速定位即便是数据按照序列排,也不能实现快速定位,显然不可取,其复杂度取决于O(N),N为数据量.</p>
+<p>二分查找,效率效率相对高些,但比较依赖数据的顺序排列,在有顺序的情况下,根据数据的对比找寻对应的数据范围,根据范围空间再次遍历查找,虽说高效点,但相应的 速度也至少有O(N/2)的复杂度</p>
+<p>hash可以很高效的定位,因为hash数据存储在内存中,根据hash值可以实现快速高效的定位,可以达到O(1),但如若是范围数据,无法实现查找功能.</p>
+<p>b树,可以实现右结点都比左边大,但可能出现一边倒情况,而且上线不明确.时间复杂度在极端情况下与顺序查找没有区别.</p>
+<p>有没有可以实现代替的方法?采用b+树,b树不适用主要因为无法定位层级高度与数据的极端情况无法调整.故而采用b+.更为准确的说是采用带有顺序访问指针的B+Tree.</p>
+<p>更为详细的内存容后续补充,这里只说MySQL对b+树优化的点在哪里</p>
+<img src="/image/DB/MySQL/IndexMarker(01).jpg" style="margin: auto;" />
+
+<center>图-01</center>
+<img src="/image/DB/MySQL/IndexMarker(02).jpg" style="margin: auto;" />
+
+
+
+<center>图-02</center>
+根据图01与 图02可以看出 ,图02相较01多了顺序指针访问,采用b+树的好处主要可以**限定层级**关系,一般MySQL层级在1-4层最好.不要小看这几个层级,也能实现上千万条数据的索引建立.一般推荐是在1-3层最好.**支持大量索引信息**为了更好理解这里说个实际的例子.
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">主键id，我们采用bigint，8字节,一条数据大小1KB</span><br><span class="line">- 第一层</span><br><span class="line">   一个页16K，每一个索引键的大小8字节（bigint）+6字节（空白块中 指针大小），因此第一层可存储16*1024&#x2F;14&#x3D;1170个索引键。</span><br><span class="line">- 第二层</span><br><span class="line">   第二层只存储索引键，能存储多少个索引键呢？1170（这么多个页，有第一层延伸的指针）*1170(每页的索引键个数，跟第一步计算一致)&#x3D;1368900</span><br><span class="line">   如果第二层存储数据呢？1170（这么多个页，有第一层延伸的指针）*16(16KB的页大小&#x2F;1KB的数据大小)&#x3D;18720，也就是能存储一万多条数。</span><br><span class="line">- 第三层</span><br><span class="line">   直接看三层能存储多少数据？1170*1170*16&#x3D;21902400，是不是很强大，此处应该有掌声和鲜花，3次IO就可以查询到2千多万左右的数据，也就是这么大的数据量如果通过主键索引来查找是很快，这就是explain一个sql时，type&#x3D;const为什么性能是最优的。</span><br></pre></td></tr></table></figure>
+
+<p>至此,上述问题,已经回答3个,剩下一般<strong>DB建议问我们创建表时都要加主键,且这个主键推荐整形的自增长主键原理是怎么样的</strong> ,MySQL从5.5版本开始数据引擎均采用(InnDB),而这个引擎默认就采用我们讨论的b+树存储.如何根据以上内容如何快速的插入一条数据呢?显然根据b树特点,我们在第一批插入数据时结点一定是比上一个结点大的,后续内容若在不改变原有数据情况下,默认插入数据的结点都会比原来的大,这样通过找寻上一个的结点,在相应正确的位置插入即可.根据优化的关系很容易定位到具体值所在的位置,从而快实现速定位,也实现了对应数据的顺序关联.</p>
+<p>补充额外的内容.</p>
+<p>MySQL数据引擎主要有InnoDB与 方式也有MyISAM两种方式,两种方式分别对聚集索引与非聚集索引.</p>
+<p>所谓的聚集索引是指像索引内容与数据等信息存储到一个文件中,而非聚集索引是分开存储的.</p>
+<p>MyISAM的存储文件有三个，frm、MYD、MYI 文件；InnoDB的存储文件就两个，frm、ibd文件。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+        <category>索引</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
 </search>
