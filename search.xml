@@ -23,59 +23,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ArrayList 底层原理</title>
-    <url>/2020/05/21/JAVA/Collection/List/ArrayList%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</url>
-    <content><![CDATA[<h1 id="ArrayList-底层原理"><a href="#ArrayList-底层原理" class="headerlink" title="ArrayList 底层原理"></a>ArrayList 底层原理</h1><p>List作为有序集合的典型代表经常使用,但底层原理一直是看别人的总结,有道是实践出真知…</p>
-<p>层级结构,数据结构</p>
-<p>扩容机制,自身特点</p>
-<a id="more"></a>
-
-<p>通过idea 工具可以看出其层次机构</p>
-<img src="/image/JAVA/Collection/List/ArrayList/Underlying principles.png" style="margin: auto;" />
-
-
-
-<center>层次结构图</center> 
-
-
-
-<p>层次结构解析</p>
-<p><strong>Iterable</strong>:泛型迭代器接口,一共3个方法,无参数构造/foreach循环/<strong>spliterator</strong>(分割并行处理,效果比迭代器快)</p>
-<p><strong>Collection</strong>:集合常用接口.集成集合常用方法;</p>
-<p><strong>AbstractCollectior</strong>:具体实现<strong>collection</strong>接口,重点<strong>finishToArray</strong>方法,<strong>hugeCapacity</strong>方法.</p>
-<p>   <strong>hugeCapacity</strong>用于将元素复制到新的集合中.</p>
-<p>   <strong>hugeCapacity</strong>扩容代码,扩容为原有空间大小的1.5倍.</p>
-<p><strong>List</strong>: 继承原有Collection方法,同时扩展部分自己的具体实现操作(default 方法)</p>
-<p><strong>AbstractList</strong>: ArrayList 主要继承的类.其具体实现接口.</p>
-<p><strong>Randomaccess</strong>接口,实现它的接口,底层采用</p>
-<p><strong>Serializable</strong>:实例化接口,实例化接口中没有具体的方法实现.</p>
-<p><strong>Cloneable</strong>:拷贝接口</p>
-<p>存储数据结构</p>
-<p>底层采用Object[]数组存储,数组作为一个集合,我们知道数组在分配内存时是一块完整的区域,数据之间有顺序关系的.缺省值大小是10.</p>
-<p>查找方法</p>
-<p>修改</p>
-<p>删除</p>
-<img src="/image/JAVA/Collection/List/ArrayList/Expansion.png" style="margin: auto;" />
-
-<center>扩容机制代码</center>
-
-<img src="/image/JAVA/Collection/List/ArrayList/default.png" style="margin: auto;" />
-
-<center>属性</center>]]></content>
-      <categories>
-        <category>JAVA</category>
-        <category>集合</category>
-        <category>list</category>
-        <category>ArrayList</category>
-        <category>原理</category>
-      </categories>
-      <tags>
-        <tag>JAVA</tag>
-        <tag>集合</tag>
-        <tag>List</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL 索引原理</title>
     <url>/2020/05/18/db/MySQL/%E7%B4%A2%E5%BC%95/MySQL%E7%B4%A2%E5%BC%95%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<h1 id="MySQL索引原理"><a href="#MySQL索引原理" class="headerlink" title="MySQL索引原理"></a>MySQL索引原理</h1><p>MySQL底层索引有hash与Btree两种,其中Btree为最常用的.对此来进行细致的分析.首先提出几个问题?</p>
@@ -143,6 +90,69 @@
       </categories>
       <tags>
         <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ArrayList 底层原理</title>
+    <url>/2020/05/21/JAVA/Collection/List/ArrayList%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h1 id="ArrayList-底层原理"><a href="#ArrayList-底层原理" class="headerlink" title="ArrayList 底层原理"></a>ArrayList 底层原理</h1><p>List作为有序集合的典型代表经常使用,但底层原理一直是看别人的总结,有道是实践出真知…</p>
+<p>层级结构,数据结构</p>
+<p>扩容机制,自身特点</p>
+<a id="more"></a>
+
+<p>通过idea 工具看出其层次结构</p>
+<img src="/image/JAVA/Collection/List/ArrayList/Underlying principles.png" style="margin: auto;" />
+
+<center>层次结构图</center> 
+
+
+<p>层次结构解析</p>
+<p><strong>Iterable</strong>:泛型迭代器接口,一共3个方法,无参数构造/foreach循环/<strong>spliterator</strong>(分割并行处理,效果比迭代器快)</p>
+<p><strong>Collection</strong>:集合常用接口.集成集合常用方法;</p>
+<p><strong>AbstractCollectior</strong>:具体实现<strong>collection</strong>接口,重点<strong>finishToArray</strong>方法,<strong>hugeCapacity</strong>方法.</p>
+<p>   <strong>hugeCapacity</strong>用于将元素复制到新的集合中.</p>
+<p>   <strong>hugeCapacity</strong>扩容代码,扩容为原有空间大小的<strong>1.5倍</strong>.</p>
+<p><strong>List</strong>: 继承原有Collection方法,同时扩展部分自己的具体实现操作(default 方法)</p>
+<p><strong>AbstractList</strong>: ArrayList 主要继承的类.其具体实现接口</p>
+<p>以下接口并未有实际的实现方法,那为什么又要调用这些接口呢?</p>
+<p><strong>Randomaccess</strong>快速访问<strong>标记</strong>接口,<strong>无实现方法</strong>,有 这格个标记默认采用for循环遍历,效率比iteator快.</p>
+<p><strong>Serializable</strong>:实例化<strong>标记</strong>接口,所谓实例化是指在数据传输过程中需要将数据进行转换二进制方便网络传输,所以我们在写类时,一般进行网络通信的数据都会实现序列化.传输完成后根据序列化内容还可以进行反序列化,还原 </p>
+<p><strong>Cloneable</strong>:拷贝<strong>标记</strong>接口,支持通过clone方法拷贝复制数据,数据的复制默认方式是<strong>浅拷贝</strong>形式.</p>
+<p>具体属性:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Default initial capacity. 默认集合大小</span><br><span class="line"> *&#x2F;</span><br><span class="line">private static final int DEFAULT_CAPACITY &#x3D; 10;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * Shared empty array instance used for empty instances. 用于共享空实例数据数组</span><br><span class="line"> *&#x2F;</span><br><span class="line">private static final Object[] EMPTY_ELEMENTDATA &#x3D; &#123;&#125;;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * Shared empty array instance used for default sized empty instances. We</span><br><span class="line"> * distinguish this from EMPTY_ELEMENTDATA to know how much to inflate when</span><br><span class="line"> * first element is added. 用于共享空实例数据数组,(与上面类似有何用处?)</span><br><span class="line"> *&#x2F;</span><br><span class="line">private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA &#x3D; &#123;&#125;;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * The array buffer into which the elements of the ArrayList are stored.</span><br><span class="line"> * The capacity of the ArrayList is the length of this array buffer. Any</span><br><span class="line"> * empty ArrayList with elementData &#x3D;&#x3D; DEFAULTCAPACITY_EMPTY_ELEMENTDATA</span><br><span class="line"> * will be expanded to DEFAULT_CAPACITY when the first element is added.</span><br><span class="line">   数组数据缓冲区存储到ArrayList中,在初次未制定长度时将未空,第一次添加数据时,将扩容至10.</span><br><span class="line">   由于是缓冲数据并未实现实例化方法.</span><br><span class="line"> *&#x2F;</span><br><span class="line">transient Object[] elementData; &#x2F;&#x2F; non-private to simplify nested class access</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * The size of the ArrayList (the number of elements it contains).</span><br><span class="line"> *  </span><br><span class="line"> * @serial</span><br><span class="line"> *&#x2F;</span><br><span class="line">private int size;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>存储数据结构</strong></p>
+<p>从上看出底层采用Object[]数组存储,<strong>数组</strong>作为一个集合,我们知道数组在分配内存时是一块完整的区域,数据之间有顺序关系的.缺省值大小是10,而且这格数组是<strong>动态</strong>的,我们超过原有空间大小就要进行扩容.ArrayList是<strong>线程不安全</strong>的.在多线程环境下很容易进行验证.</p>
+<img src="/image/JAVA/Collection/List/ArrayList/proveThread NotSee.png" style="margin: auto;" />
+
+<p>通过一个线程向list 中添加元素,结果却各不相同,可见线程执行时各个ArrayList<strong>不可见</strong></p>
+<p>查找方法</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public E get(int index) &#123;</span><br><span class="line">    rangeCheck(index);</span><br><span class="line">    return elementData(index);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void rangeCheck(int index) &#123;</span><br><span class="line">        if (index &gt;&#x3D; size)</span><br><span class="line">            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">E elementData(int index) &#123;</span><br><span class="line">        return (E) elementData[index];</span><br><span class="line">&#125;</span><br><span class="line">-----------------------------------------------------------------------------------------</span><br><span class="line">public E get(int index) &#123;</span><br><span class="line">            rangeCheck(index);</span><br><span class="line">            &#x2F;&#x2F; 多线程下 fail-fast机制,稍后说明 </span><br><span class="line">            checkForComodification();</span><br><span class="line">            return ArrayList.this.elementData(offset + index);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> private void checkForComodification() &#123;</span><br><span class="line">            if (ArrayList.this.modCount !&#x3D; this.modCount)</span><br><span class="line">                throw new ConcurrentModificationException();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>遍历方法,若采用for循环,则跟上面的获取方法是一致的.</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">default void forEach(Consumer&lt;? super T&gt; action) &#123;</span><br><span class="line">    Objects.requireNonNull(action);</span><br><span class="line">    for (T t : this) &#123;</span><br><span class="line">        action.accept(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>新增(方法)</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public boolean add(E e) &#123;</span><br><span class="line">    ensureCapacityInternal(size + 1);</span><br><span class="line">    elementData[size++] &#x3D; e;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void ensureCapacityInternal(int minCapacity) &#123;</span><br><span class="line">        ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static int calculateCapacity(Object[] elementData, int minCapacity) &#123;</span><br><span class="line">        if (elementData &#x3D;&#x3D; DEFAULTCAPACITY_EMPTY_ELEMENTDATA) &#123;</span><br><span class="line">            return Math.max(DEFAULT_CAPACITY, minCapacity);</span><br><span class="line">        &#125;</span><br><span class="line">        return minCapacity;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void ensureExplicitCapacity(int minCapacity) &#123;</span><br><span class="line">        modCount++;</span><br><span class="line">        &#x2F;&#x2F; overflow-conscious code</span><br><span class="line">        if (minCapacity - elementData.length &gt; 0)</span><br><span class="line">            grow(minCapacity);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void grow(int minCapacity) &#123;</span><br><span class="line">        &#x2F;&#x2F; overflow-conscious code</span><br><span class="line">        int oldCapacity &#x3D; elementData.length;</span><br><span class="line">        int newCapacity &#x3D; oldCapacity + (oldCapacity &gt;&gt; 1);</span><br><span class="line">        if (newCapacity - minCapacity &lt; 0)</span><br><span class="line">            newCapacity &#x3D; minCapacity;</span><br><span class="line">        if (newCapacity - MAX_ARRAY_SIZE &gt; 0)</span><br><span class="line">            newCapacity &#x3D; hugeCapacity(minCapacity);</span><br><span class="line">        &#x2F;&#x2F; minCapacity is usually close to size, so this is a win:</span><br><span class="line">        elementData &#x3D; Arrays.copyOf(elementData, newCapacity);</span><br><span class="line">&#125; </span><br><span class="line">-----------------------------------------------------------------------------------------</span><br><span class="line">public void add(int index, E element) &#123;</span><br><span class="line">        rangeCheckForAdd(index);</span><br><span class="line">        ensureCapacityInternal(size + 1);  &#x2F;&#x2F; Increments modCount!!</span><br><span class="line">        System.arraycopy(elementData, index, elementData, index + 1,size - index);</span><br><span class="line">        elementData[index] &#x3D; element;</span><br><span class="line">        size++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void rangeCheckForAdd(int index) &#123;</span><br><span class="line">        if (index &gt; size || index &lt; 0)</span><br><span class="line">            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));</span><br><span class="line">&#125;</span><br><span class="line">-----------------------------------------------------------------------------------------</span><br><span class="line">public boolean addAll(Collection&lt;? extends E&gt; c) &#123;</span><br><span class="line">        Object[] a &#x3D; c.toArray();</span><br><span class="line">        int numNew &#x3D; a.length;</span><br><span class="line">        ensureCapacityInternal(size + numNew);  &#x2F;&#x2F; Increments modCount</span><br><span class="line">        System.arraycopy(a, 0, elementData, size, numNew);</span><br><span class="line">        size +&#x3D; numNew;</span><br><span class="line">        return numNew !&#x3D; 0;</span><br><span class="line">&#125;</span><br><span class="line">---------------------------------------------------------------------------------------- </span><br><span class="line">public boolean addAll(int index, Collection&lt;? extends E&gt; c) &#123;</span><br><span class="line">        rangeCheckForAdd(index);</span><br><span class="line">        </span><br><span class="line">        Object[] a &#x3D; c.toArray();</span><br><span class="line">        int numNew &#x3D; a.length;</span><br><span class="line">        ensureCapacityInternal(size + numNew);  &#x2F;&#x2F; Increments modCount</span><br><span class="line"></span><br><span class="line">        int numMoved &#x3D; size - index;</span><br><span class="line">        if (numMoved &gt; 0)</span><br><span class="line">            System.arraycopy(elementData, index, elementData, index + numNew,numMoved);</span><br><span class="line"></span><br><span class="line">        System.arraycopy(a, 0, elementData, index, numNew);</span><br><span class="line">        size +&#x3D; numNew;</span><br><span class="line">        return numNew !&#x3D; 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">public void add(E e) &#123;</span><br><span class="line">            checkForComodification();</span><br><span class="line">            try &#123;</span><br><span class="line">                int i &#x3D; cursor;</span><br><span class="line">                ArrayList.this.add(i, e);</span><br><span class="line">                cursor &#x3D; i + 1;</span><br><span class="line">                lastRet &#x3D; -1;</span><br><span class="line">                expectedModCount &#x3D; modCount;</span><br><span class="line">            &#125; catch (IndexOutOfBoundsException ex) &#123;</span><br><span class="line">                throw new ConcurrentModificationException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line">----------------------------------------------------------------------------------------  public void add(int index, E e) &#123;</span><br><span class="line">            rangeCheckForAdd(index);</span><br><span class="line">            checkForComodification();</span><br><span class="line">            parent.add(parentOffset + index, e);</span><br><span class="line">            this.modCount &#x3D; parent.modCount;</span><br><span class="line">            this.size++;</span><br><span class="line">&#125;</span><br><span class="line">----------------------------------------------------------------------------------------   </span><br><span class="line"> public boolean addAll(Collection&lt;? extends E&gt; c) &#123;</span><br><span class="line">            return addAll(this.size, c);</span><br><span class="line">        &#125;</span><br><span class="line">----------------------------------------------------------------------------------------</span><br><span class="line">public boolean addAll(int index, Collection&lt;? extends E&gt; c) &#123;</span><br><span class="line">            rangeCheckForAdd(index);</span><br><span class="line">            int cSize &#x3D; c.size();</span><br><span class="line">            if (cSize&#x3D;&#x3D;0)</span><br><span class="line">                return false;</span><br><span class="line"></span><br><span class="line">            checkForComodification();</span><br><span class="line">            parent.addAll(parentOffset + index, c);</span><br><span class="line">            this.modCount &#x3D; parent.modCount;</span><br><span class="line">            this.size +&#x3D; cSize;</span><br><span class="line">            return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public E set(int index, E element) &#123;</span><br><span class="line">    rangeCheck(index);</span><br><span class="line"></span><br><span class="line">    E oldValue &#x3D; elementData(index);</span><br><span class="line">    elementData[index] &#x3D; element;</span><br><span class="line">    return oldValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>删除</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public E remove(int index) &#123;</span><br><span class="line">    rangeCheck(index);</span><br><span class="line"></span><br><span class="line">    modCount++;</span><br><span class="line">    E oldValue &#x3D; elementData(index);</span><br><span class="line"></span><br><span class="line">    int numMoved &#x3D; size - index - 1;</span><br><span class="line">    if (numMoved &gt; 0)</span><br><span class="line">        System.arraycopy(elementData, index+1, elementData, index,</span><br><span class="line">                         numMoved);</span><br><span class="line">    elementData[--size] &#x3D; null; &#x2F;&#x2F; clear to let GC do its work</span><br><span class="line"></span><br><span class="line">    return oldValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>JAVA</category>
+        <category>集合</category>
+        <category>list</category>
+        <category>ArrayList</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>JAVA</tag>
+        <tag>集合</tag>
+        <tag>List</tag>
       </tags>
   </entry>
 </search>
